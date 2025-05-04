@@ -1,5 +1,5 @@
 // Model for Review
-const mongoose = requre('mongoose');
+const mongoose = require('mongoose');
 
 const ReviewSchema = new mongoose.Schema({
     productId: {
