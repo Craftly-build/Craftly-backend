@@ -8,6 +8,7 @@ const CartRoutes = require('./routes/cartRoutes'); // this imports the routes
 const ProductRoutes = require('./routes/productRoutes');
 const CategoryRoutes = require('./routes/categoryRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const artisanRoutes = require('./routes/artisanRoutes')
 
 //variable for express function
 const app = express();
