@@ -8,16 +8,15 @@ const ReviewSchema = new mongoose.Schema({
         required:true
     },
 
-    reviewerName: {
+    author: {
         type: String, 
         required: true
     },
 
-    Comment: {
-        type: Number,
+    comment: {
+        type: String,
         required: true,
-        min:1,
-        max:4
+        trim: true,
     },
 
     rating: {
