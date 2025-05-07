@@ -1,20 +1,20 @@
 //Routes for Reviews
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Review = require("../models/Review");
+const Review = require('../models/Review');
 
 // GET route for the Review for Products
-router.get("/products/:id/reviews", async (req, res) => {
+router.get('/products/:id/reviews', async (req, res) => {
   try {
     const reviews = await Review.find({ productId: req.params.id });
     res.json(reviews);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch reviews" });
+    res.status(500).json({ message: 'Failed to fetch reviews'});
   }
 });
 //POST route for creating a new Review
-router.post("/products/:id/reviews", async (req, res) => {
+router.post('/products/:id/reviews', async (req, res) => {
   // const { rating, comment } = req.body;
    const productId = req.params.id;
    console.log("Product ID:", productId);
