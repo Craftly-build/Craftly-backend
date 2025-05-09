@@ -2,6 +2,8 @@
 
 const express = require("express");
 const router = express.Router();
+const {requireAuth} = require('../middleware/auth');
+const asyncHandler = require('../middleware/async');
 
 // Utility functions
 
@@ -19,15 +21,30 @@ function calculateTotal(cart, req) {
   return total;
 }
 
-// GET Cart
-router.get("/cart", (req, res) => {
+// GET Cart : This will be be available for anyone one (Guests and authenticated users.)
+
+router.get("/cart", asyncHandler(async(req, res) => {
   const cart = req.session.cart || [];
   const total = req.session.total || 0;
-  res.json({ cart, total });
-});
 
-// POST Add to Cart
-router.post("/addtocart", (req, res) => {
+  if (req.oidc && req.oidc.isAuthenticated()) {
+    return res.json({
+      cart,
+      total,
+      user: {
+        id: req.oidc.user.sub,
+        email: req.oidc.user.email,
+      }
+    });
+  }
+  res.json({ cart, total });
+}));
+
+
+
+// POST Add to Cart: This will be be available for anyone one (Guests and authenticated users.)
+
+router.post("/addtocart", asyncHandler(async(req, res) => {
   console.log("Add to cart route hit");
   const product = req.body.product;
 
@@ -49,10 +66,12 @@ router.post("/addtocart", (req, res) => {
   req.session.cart = cart;
   const total = calculateTotal(cart, req);
   res.json({ cart, total });
-});
+}));
 
-// POST Remove Product
-router.post("/removeproduct", (req, res) => {
+
+// POST Remove Product: This will be be available for anyone one (Guests and authenticated users).
+
+router.post("/removeproduct", asyncHandler(async(req, res) => {
   const id = req.body.id;
   let cart = req.session.cart || [];
 
@@ -61,10 +80,11 @@ router.post("/removeproduct", (req, res) => {
   req.session.cart = cart;
   const total = calculateTotal(cart, req);
   res.json({ cart, total });
-});
+}));
 
-// POST Edit Product Quantity
-router.post("/editProductQuantity", (req, res) => {
+
+// POST Edit Product Quantity: This will be be available for anyone one (Guests and authenticated users).
+router.post("/editProductQuantity", asyncHandler(async (req, res) => {
   const { id, action } = req.body;
   let cart = req.session.cart || [];
 
@@ -82,29 +102,45 @@ router.post("/editProductQuantity", (req, res) => {
   req.session.cart = cart;
   const total = calculateTotal(cart, req);
   res.json({ cart, total });
-});
+}));
 
-// POST Place Order
-router.post("/placeorder", (req, res) => {
+
+
+// POST Place Order: On this , the protected route will require authentication
+router.post("/placeorder", requireAuth, asyncHandler(async (req, res) => {
   const cart = req.session.cart || [];
   if (cart.length === 0) {
     return res.status(400).json({ message: "Cart is empty, cannot place order." });
   }
 
+  // This helps store or save order in the mongodb.
   req.session.cart = [];
   req.session.total = 0;
-  res.json({ message: "Order placed successfully" });
-});
+  res.json({ message: "Order placed successfully",
+    user: {
+      id: req.oidc.user.sub,
+      email: req.oidc.user.email
+    }
+  });
+}));
 
-// GET Payment
-router.get("/payment", (req, res) => {
+// GET Payment: On this , the protected route will require authentication
+router.get("/payment", requireAuth,asyncHandler (async (req, res) => {
   const total = req.session.total || 0;
   if (total === 0) {
     return res.status(400).json({
       message: "Cart is empty, cannot complete the payment",
     });
   }
-  res.json({ message: "Proceed to payment", total });
-});
+// to iniatilise payment witht the third party payment provider.
+  res.json({ message: "Proceed to payment", total ,
+    user: {
+      id:req.oidc.user.sub,
+      email: req.oidc.user.email
+    }
+
+
+  });
+}));
 
 module.exports = router;
